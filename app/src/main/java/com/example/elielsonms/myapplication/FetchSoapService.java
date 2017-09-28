@@ -29,7 +29,7 @@ public class FetchSoapService extends IntentService {
     private static  String SOAP_ACTION = "";
     private static  String METHOD_NAME = "obterHorarios";
     private static  String NAMESPACE = "http://webservice.vetpet.com/";
-    private static  String URL = "http://192.168.0.24:9999/MarcarConsulta?wsdl";
+    private static  String URL = "http://elielsonms.com:8080/ClinicaVeterinaria/MarcarConsulta?wsdl";
 
     public FetchSoapService() {
         super("FetchSoapService");

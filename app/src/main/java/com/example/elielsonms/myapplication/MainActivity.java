@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity{
                 PendingIntent pendingResult = createPendingResult(REQUEST_SOAP_TEST, new Intent(), 0);
                 Intent intent = new Intent(getApplicationContext(), FetchSoapService.class);
                 intent.putExtra(FetchSoapService.PEDIDO, pendingResult);
-                startService(intent);
+
             }
         });
 

@@ -9,6 +9,7 @@ import android.provider.Settings;
 import android.util.Log;
 
 import org.ksoap2.SoapEnvelope;
+import org.ksoap2.serialization.PropertyInfo;
 import org.ksoap2.serialization.SoapObject;
 import org.ksoap2.serialization.SoapPrimitive;
 import org.ksoap2.serialization.SoapSerializationEnvelope;
@@ -26,8 +27,14 @@ public class FetchSoapService extends IntentService {
     public static final String PEDIDO = "PEDIDO";
     public static final String RESULTADO = "RESULTADO";
 
+    public static final String ACTION_HORARIOS = "HORARIOS";
+    public static final String ACTION_MARCAR_CONSULTA = "MARCAR_CONSULTA";
+
     private static  String SOAP_ACTION = "";
-    private static  String METHOD_NAME = "obterHorarios";
+
+    private static  String METODO_HORARIOS = "obterHorarios";
+    private static  String METODO_MARCAR_CONSULTA = "registrarConsulta";
+
     private static  String NAMESPACE = "http://webservice.vetpet.com/";
     private static  String URL = "http://elielsonms.com:8080/ClinicaVeterinaria/MarcarConsulta?wsdl";
 
@@ -42,11 +49,16 @@ public class FetchSoapService extends IntentService {
             PendingIntent pedido = intent.getParcelableExtra(PEDIDO);
             try {
                 try {
-                    System.out.println("Requesting webservice");
-                    SoapObject request = new SoapObject(NAMESPACE, METHOD_NAME);
+                    System.out.println("Requesting webservice "+intent.getAction());
+                    SoapObject request = new SoapObject(NAMESPACE, intent.getAction().equals(ACTION_HORARIOS) ? METODO_HORARIOS : METODO_MARCAR_CONSULTA);
 
                     SoapSerializationEnvelope soapEnvelope = new SoapSerializationEnvelope(SoapEnvelope.VER11);
                     soapEnvelope.setOutputSoapObject(request);
+                    if(!intent.getAction().equals(ACTION_HORARIOS)){
+                        request.addProperty("arg0",intent.getStringExtra("cpf"));
+                        request.addProperty("arg1",intent.getStringExtra("animal"));
+                        request.addProperty("arg2",intent.getLongExtra("idHorario",-1));
+                    }
 
                     HttpTransportSE transport = new HttpTransportSE(URL);
 
@@ -55,10 +67,13 @@ public class FetchSoapService extends IntentService {
 
                     Intent resultado = new Intent();
 
-                    resultado.putExtra(RESULTADO, (Serializable) montarHorarios(resultObj));
-                    System.out.println("Result from webservice "+resultObj.getProperty(0).toString());
-
+                    resultado.putExtra(RESULTADO, intent.getAction().equals(ACTION_HORARIOS) ? (Serializable) montarHorarios(resultObj) : ((SoapPrimitive)resultObj.getProperty(0)).toString());
+                    if(!intent.getAction().equals(ACTION_HORARIOS)){
+                        System.out.println(((SoapPrimitive)resultObj.getProperty(0)).toString());
+                        System.out.println(((SoapPrimitive)resultObj.getProperty(0)));
+                    }
                     pedido.send(this, 1, resultado);
+
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     pedido.send(0);
@@ -66,6 +81,8 @@ public class FetchSoapService extends IntentService {
             }catch (Exception e){
                 e.printStackTrace();
             }
+        }else{
+            System.out.println("Intent empty");
         }
     }
 
